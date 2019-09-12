@@ -1,9 +1,9 @@
 # WIP: Personal Archiver
 
-archiver.py is a python program which currently automatically and consistently imports all photos from Apple devices to Mac via Preview.
-Eventually it will be a python program which will archive photos, notes, lists, etc.
+archiver.py is a python program which currently automatically and consistently imports photos from Apple devices to Mac via Preview.
+Eventually, it will be a python program which will archive photos, notes, lists, etc.
 
-The most significant methods utilized are the following:
+The most significant methods:
 * transferPhotos()
 	* Transfers photos from Apple devices to Mac
 
