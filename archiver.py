@@ -4,9 +4,12 @@
 
 import re
 import os
+import time
 import subprocess
+import threading
 import applescript
 import runcmd
+import psutil
 
 class photoClient():
 
@@ -200,7 +203,7 @@ def getBatchNum():
 		else:
 			print("Please enter either an integer number greater than 0 and less than or equal to 1000")
 
-# If Apple device connected EDITTEST, returns serial number of device using ioreg command, otherwise returns None
+# If Apple device connected, returns serial number of device using ioreg command, otherwise returns None
 def getSerialNo():
 	ioregOutput = subprocess.check_output("ioreg -w0 -rc IOUSBDevice -k SupportsIPhoneOS", shell=True).decode("utf-8")
 	if ioregOutput == "":
@@ -221,10 +224,17 @@ def serialNoCheck():
 	return serialNo
 
 # Serial number check meant to run in background during Preview navigation and import
-def connectionCheck():
-	while getSerialNo() != None:
+def connectionCheck(serialNo):
+	while getSerialNo() == serialNo:
 		time.sleep(.3)
-	print("iPhone disconnected. This program will now exit")
+	print("\niPhone disconnected. This program will now exit")
+	pythonPID = ""
+	for p in psutil.process_iter(attrs=['name']):
+		if 'osascript' in p.info['name'] or 'Preview' in p.info['name']:
+			p.terminate()
+		elif 'Python' in p.info['name']:
+			pythonPID = p.pid
+	psutil.Process(pythonPID).terminate()
 
 # Method which transfers photos from iPhone to Mac
 def transferPhotos():
@@ -241,6 +251,8 @@ def transferPhotos():
 	print("\033[1mAvoid interacting with the computer other than Terminal while import is occurring.\nUI navigation can very easily fail if interrupted.\033[0m")
 	photoClient.openPreview()
 	serialNo = serialNoCheck()
+	c = threading.Thread(target=connectionCheck, args=(serialNo,), daemon=True)
+	c.start()
 	photoClient.clickImport()
 	applescript.tell.app("Terminal", "activate")
 	input("Press return when iPhone is unlocked")
