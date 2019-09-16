@@ -8,6 +8,12 @@ on importAll(filePath)
 			repeat until rowCount = (count rows of table 1 of scroll area 1 of group 1 of window 1)
 				set rowCount to count rows of table 1 of scroll area 1 of group 1 of window 1
 			end repeat
+			-- adjust rowCount for videos
+			set movIndex to 1
+			repeat until value of static text of UI element 3 of row movIndex of table 1 of scroll area 1 of group 1 of window 1 does not contain "MOV"
+				set rowCount to rowCount - 1
+				set movIndex to movIndex + 1
+			end repeat
 			click button "Import All" of group 1 of window 1
 			set frontmost to true
 			repeat until sheet 1 of window 1 exists
@@ -26,6 +32,11 @@ on importAll(filePath)
 				-- if rowCount = 1 then rowCount & " documents" will not appear in name of window 1
 				repeat until name of window 1 does not contain "Import from"
 					delay 0.5
+					if (name of window 1 contains "Import from") and (sheet 1 of window 1 exists) then -- sheet containing error message
+						click button 1 of sheet 1 of window 1
+						click button 1 of sheet 1 of window 1
+						error 1001
+					end if
 				end repeat
 			else
 				repeat until (name of window 1 contains rowCount & " documents") and (name of window 1 does not contain "Import from")
@@ -45,8 +56,13 @@ end importAll
 on main(filePath)
 	try
 		importAll(filePath)
-	on error 1001
-		return "error"
+		return "true"
+	on error errStr number errorNo
+		if errorNo = 1001
+			return "false"
+		else
+			return "importAll.scpt has encountered an error on import"
+		end if
 	end try
 end main
 

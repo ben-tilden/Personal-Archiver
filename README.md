@@ -17,7 +17,7 @@ Type 'pip install -r requirements.txt' into the command line and enter and the n
 * re
 * os
 * time
-* subprocess
+* traceback
 * threading
 * applescript: https://pypi.org/project/applescript/
 * runcmd: https://pypi.org/project/runcmd/

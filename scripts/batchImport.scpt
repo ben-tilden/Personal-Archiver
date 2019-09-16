@@ -7,6 +7,7 @@ on batchImport(batchNum, filePath)
 			set rowNum to 0
 			set rowCount to 0
 			set windowNum to 0
+			set movIndex to 1
 			-- rowCount updates as more photos are identified
 			repeat until rowCount = (count rows of table 1 of scroll area 1 of group 1 of window 1)
 				set rowCount to count rows of table 1 of scroll area 1 of group 1 of window 1
@@ -29,6 +30,11 @@ on batchImport(batchNum, filePath)
 						set rowNum to rowNum + 1
 					end repeat
 				end if
+				-- adjust windowNum for videos
+				repeat until value of static text of UI element 3 of row movIndex of table 1 of scroll area 1 of group 1 of window 1 does not contain "MOV"
+					set windowNum to windowNum - 1
+					set movIndex to movIndex + 1
+				end repeat
 				click button "Import" of group 1 of window 1
 				repeat until sheet 1 of window 1 exists
 					delay 0.1
@@ -48,6 +54,10 @@ on batchImport(batchNum, filePath)
 				if windowNum = 1 then
 					repeat until name of window 1 does not contain "Import from"
 						delay 0.5
+						if (name of window 1 contains "Import from") and (sheet 1 of window 1 exists) then -- sheet containing error message
+							click button 1 of sheet 1 of window 1
+							error 1001
+						end if
 					end repeat
 				else
 					repeat until (name of window 1 contains windowNum & " documents") and (name of window 1 does not contain "Import from")
@@ -55,6 +65,7 @@ on batchImport(batchNum, filePath)
 						-- window 1 for the first few iterations of this is still "Import from " & iPhoneName
 						delay 5
 						if (name of window 1 contains "Import from") and (sheet 1 of window 1 exists) then -- sheet containing error message
+							click button 1 of sheet 1 of window 1
 							click button 1 of sheet 1 of window 1
 							error 1001
 						end if
@@ -72,8 +83,13 @@ end batchImport
 on main(batchNum, filePath)
 	try
 		batchImport(batchNum, filePath)
-	on error 1001
-		return "error"
+		return "true"
+	on error errStr number errorNo
+		if errorNo = 1001
+			return "false"
+		else
+			return "batchImport.scpt has encountered an error on import"
+		end if
 	end try
 end main
 
