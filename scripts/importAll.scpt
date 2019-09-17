@@ -1,19 +1,13 @@
 -- Imports all photos from "Import from " & iPhoneName window. Quits after import is finished.
 on importAll(filePath)
+	set vidOnly to isVidOnly()
+	navFilePath(filePath)
+	waitForImport(vidOnly)
+end importAll
+
+on navFilePath(filePath)
 	tell application "System Events"
 		tell process "Preview"
-			log ("Begin")
-			set rowCount to 0
-			-- rowCount updates as more photos are identified
-			repeat until rowCount = (count rows of table 1 of scroll area 1 of group 1 of window 1)
-				set rowCount to count rows of table 1 of scroll area 1 of group 1 of window 1
-			end repeat
-			-- adjust rowCount for videos
-			set movIndex to 1
-			repeat until value of static text of UI element 3 of row movIndex of table 1 of scroll area 1 of group 1 of window 1 does not contain "MOV"
-				set rowCount to rowCount - 1
-				set movIndex to movIndex + 1
-			end repeat
 			click button "Import All" of group 1 of window 1
 			set frontmost to true
 			repeat until sheet 1 of window 1 exists
@@ -26,42 +20,73 @@ on importAll(filePath)
 			keystroke filePath
 			key code 36
 			click button "Choose Destination" of sheet 1 of window 1
-			-- Photos begin importing here
-			-- if rowCount = 1 then rowCount & " documents" will not appear in name of window 1
-			if rowCount = 1 then
-				-- if rowCount = 1 then rowCount & " documents" will not appear in name of window 1
-				repeat until name of window 1 does not contain "Import from"
-					delay 0.5
-					if (name of window 1 contains "Import from") and (sheet 1 of window 1 exists) then -- sheet containing error message
-						click button 1 of sheet 1 of window 1
-						click button 1 of sheet 1 of window 1
-						error 1001
-					end if
+		end tell
+	end tell
+end navFilePath
+
+-- Returns true if all elements to be imported are videos, false otherwise
+on isVidOnly()
+	tell application "System Events"
+		tell process "Preview"
+			repeat with x from 1 to (count the rows of table 1 of scroll area 1 of group 1 of window 1)
+				if value of static text of UI element 3 of row x of table 1 of scroll area 1 of group 1 of window 1 does not contain "MOV" then
+					return false
+				end if
+			end repeat
+			return true
+		end tell
+	end tell
+end isVidOnly
+
+-- Waits for import of batch to complete
+on waitForImport(vidOnly)
+	tell application "System Events"
+		tell process "Preview"
+			if vidOnly is true then -- there are only videos in the import
+				repeat until not (button "Cancel" of group 1 of window 1 exists)
+					delay 3
+					my timeLapseCheck()
 				end repeat
-			else
-				repeat until (name of window 1 contains rowCount & " documents") and (name of window 1 does not contain "Import from")
-					-- second conditional covers edge case in which iPhone is named rowCount & " documents"
-					-- window 1 for the first few iterations of this is still "Import from " & iPhoneName
-					delay 5
-					if (name of window 1 contains "Import from") and (sheet 1 of window 1 exists) then -- sheet containing error message
-						click button 1 of sheet 1 of window 1
-						error 1001
-					end if
+			else -- there are some photo files
+				repeat until name of window 1 does not contain "Import from"
+					delay 1
+					my timeLapseCheck()
+				end repeat
+				repeat until not (button "Cancel" of group 1 of window 1 exists)
+					delay 3
+					my timeLapseCheck()
 				end repeat
 			end if
 		end tell
 	end tell
-end importAll
+end waitForImport
+
+-- Checks for time lapse video error
+on timeLapseCheck()
+	tell application "System Events"
+		tell process "Preview"
+			if sheet 1 of window 1 exists then -- sheet containing error message
+				click button 1 of sheet 1 of window 1
+				if button 1 of sheet 1 of window 1 exists then
+					click button 1 of sheet 1 of window 1
+				end if
+				error 1001
+			end if
+		end tell
+	end tell
+end timeLapseCheck
 
 on main(filePath)
 	try
 		importAll(filePath)
-		return "true"
-	on error errStr number errorNo
-		if errorNo = 1001
-			return "false"
+		return "success"
+	on error errStr number errNum
+		if errStr = 1001 then
+			return "importAll.scpt has encountered a time-lapse photo on import"
+		else if errNum = -1719 or errNum = -1728 then
+			return "importAll.scpt has encountered error " & errNum & ". This is more often than not a result of user manipulation during UI navigation."
 		else
-			return "importAll.scpt has encountered an error on import"
+			return "importAll.scpt has encountered an error on import: " & errStr
 		end if
 	end try
 end main
