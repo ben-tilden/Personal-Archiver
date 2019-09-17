@@ -14,6 +14,7 @@ on batchImport(batchNum, filePath)
 			end repeat
 			set frontmost to true
 			repeat until rowNum = rowCount
+				perform action "AXRaise" of window 1
 				key code 125 -- first keystroke begins new batch selection separate from last
 				set rowNum to rowNum + 1
 				-- if statement ensures no extra work is done if the last selection is smaller than batchNum
@@ -31,9 +32,11 @@ on batchImport(batchNum, filePath)
 					end repeat
 				end if
 				-- adjust windowNum for videos
-				repeat until value of static text of UI element 3 of row movIndex of table 1 of scroll area 1 of group 1 of window 1 does not contain "MOV"
+				set movIndexDelta to 0
+				repeat until (value of static text of UI element 3 of row movIndex of table 1 of scroll area 1 of group 1 of window 1 does not contain "MOV") or (movIndexDelta = batchNum)
 					set windowNum to windowNum - 1
 					set movIndex to movIndex + 1
+					set movIndexDelta to movIndexDelta + 1
 				end repeat
 				click button "Import" of group 1 of window 1
 				repeat until sheet 1 of window 1 exists
@@ -51,7 +54,11 @@ on batchImport(batchNum, filePath)
 				click button "Choose Destination" of sheet 1 of window 1
 				-- Photos begin importing here
 				-- if rowCount = 1 then rowCount & " documents" will not appear in name of window 1
-				if windowNum = 1 then
+				if windowNum = 0 then
+					repeat while enabled of button "Import All" of group 1 of window 1 is false
+						delay 0.5
+					end repeat
+				else if windowNum = 1 then
 					repeat until name of window 1 does not contain "Import from"
 						delay 0.5
 						if (name of window 1 contains "Import from") and (sheet 1 of window 1 exists) then -- sheet containing error message
@@ -59,6 +66,7 @@ on batchImport(batchNum, filePath)
 							error 1001
 						end if
 					end repeat
+					click button 1 of window 1
 				else
 					repeat until (name of window 1 contains windowNum & " documents") and (name of window 1 does not contain "Import from")
 						-- second conditional covers edge case in which iPhone is named windowNum & " documents"
