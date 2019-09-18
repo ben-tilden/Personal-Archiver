@@ -337,6 +337,7 @@ def serialNoCheck():
     """Return serial number of connected device."""
     serialNo = getSerialNo()
     while serialNo is None:
+        applescript.tell.app("Terminal", "activate")
         input("Press return when device is connected.")
         serialNo = getSerialNo()
     return serialNo
@@ -382,8 +383,8 @@ def transferPhotos():
               "while import is occurring.\nUI navigation can very easily fail "
               "if interrupted.\033[0m")
         p.openPreview()
-        p.clickImport()
         serialNo = serialNoCheck()
+        p.clickImport()
         # Create custom signal to catch DeviceConnectionError
         signal.signal(signal.SIGUSR1, raiseDeviceErr)
         c = threading.Thread(target=connectionCheck,

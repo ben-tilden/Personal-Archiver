@@ -8,6 +8,7 @@ The most significant methods:
 	* Transfers photos from Apple devices to Mac
 
 Quick Notes:
+* __Because this program uses applescript, in order to for it to work, Terminal must have assistive access.__ This can be provided by adding Terminal to System Preferences > Security & Privacy > Privacy > Accessibility
 * This program was developed for and tested on version 10.1 of Preview and version 10.14.6 of Mojave. 
 * Preview, unfortunately, sometimes has difficulty with importing live photos, so while the JPG's of live photos will always be imported, their MOV counterparts may not. 
 * Around 90% of the time, if there is an attempt by Preview to import a time-lapse video it will fail, so it is recommendeded to import time-lapse videos separately. The program is designed to exit upon finding unresponsive time-lapse videos. 
