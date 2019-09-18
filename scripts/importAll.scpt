@@ -84,7 +84,7 @@ on main(filePath)
 		if errStr = 1001 then
 			return "importAll.scpt has encountered a time-lapse photo on import"
 		else if errNum = -1719 or errNum = -1728 then
-			return "importAll.scpt has encountered error " & errNum & ". This is more often than not a result of user manipulation during UI navigation."
+			return "importAll.scpt has encountered error " & errNum & ". This is more often than not a result of user interference during UI navigation."
 		else
 			return "importAll.scpt has encountered an error on import: " & errStr
 		end if

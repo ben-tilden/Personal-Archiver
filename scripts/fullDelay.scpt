@@ -1,4 +1,4 @@
--- Returns true if full time is waited out, false if photos show up before then
+-- Returns true if full time is waited out, false if photos show up before then.
 -- Necessary for distinguishing amongst three cases:
 ----(1) The images are taking a long time to load
 ----(2) The device is not unlocked
@@ -20,7 +20,15 @@ on fullDelay()
 end fullDelay
 
 on main()
-	fullDelay()
+	try
+		fullDelay()
+	on error errStr number errNum
+		if errNum = -1719 or errNum = -1728 then
+			return "fullDelay.scpt has encountered error " & errNum & ". This is more often than not a result of user interference during UI navigation."
+		else
+			return "fullDelay.scpt has encountered an error on import: " & errStr
+		end if
+	end try
 end main
 
 on run()

@@ -15,7 +15,16 @@ on navImportWindow()
 end navImportWindow
 
 on main()
-	navImportWindow()
+	try
+		navImportWindow()
+		return "success"
+	on error errStr number errNum
+		if errNum = -1719 or errNum = -1728 then
+			return "navImportWindow.scpt has encountered error " & errNum & ". This is more often than not a result of user interference during UI navigation."
+		else
+			return "navImportWindow.scpt has encountered an error on import: " & errStr
+		end if
+	end try
 end main
 
 on run()

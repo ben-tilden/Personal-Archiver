@@ -134,7 +134,7 @@ on main(batchNum, filePath)
 		if errStr = 1001 then
 			return "batchImport.scpt has encountered a time-lapse photo on import"
 		else if errNum = -1719 or errNum = -1728 then
-			return "batchImport.scpt has encountered error " & errNum & ". This is more often than not a result of user manipulation during UI navigation."
+			return "batchImport.scpt has encountered error " & errNum & ". This is more often than not a result of user interference during UI navigation."
 		else
 			return "batchImport.scpt has encountered an error on import: " & errStr
 		end if

@@ -9,7 +9,12 @@ on openPreview()
 end openPreview
 
 on main()
-	openPreview()
+	try
+		openPreview()
+		return "success"
+	on error errStr number errNum
+		return "openPreview.scpt has encountered an error on import: " & errStr
+	end try
 end main
 
 on run()

@@ -1,3 +1,4 @@
+-- Checks if there are multiple devices connected.
 on isMultiplePhones()
 	tell application "System Events"
 		tell process "Preview"
@@ -11,7 +12,11 @@ on isMultiplePhones()
 end isMultiplePhones
 
 on main()
-	isMultiplePhones()
+	try
+		isMultiplePhones()
+	on error errStr number errNum
+		return "isMultiplePhones.scpt has encountered an error on import: " & errStr
+	end try
 end main
 
 on run()

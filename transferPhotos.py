@@ -2,15 +2,15 @@
 # Objective: Transfer photos from iDevice to Mac
 # Author: Ben Tilden
 
-import re
 import os
+import re
+import signal
 import sys
 import time
-import traceback
 import threading
+import traceback
 import applescript
 import runcmd
-import psutil
 from exceptions import AppleScriptError
 from exceptions import DeviceConnectionError
 
@@ -18,42 +18,50 @@ from exceptions import DeviceConnectionError
 class previewClient():
     """Class used for Preview UI navigation via applescript."""
 
-    def openPreview():
+    def openPreview(self):
         """Open Preview."""
-        applescript.run("./scripts/openPreview.scpt")
+        r = applescript.run("./scripts/openPreview.scpt")
+        if r.out != "success":
+            raise AppleScriptError(r.out)
 
-    def isMultiplePhones():
+    def isMultiplePhones(self):
         """Return true if multiple devices are connected."""
-        if applescript.run("./scripts/isMultiplePhones.scpt").out == "true":
+        r = applescript.run("./scripts/isMultiplePhones.scpt")
+        if r.out == "true":
             return True
-        else:
+        elif r.out == "false":
             return False
+        else:
+            raise AppleScriptError(r.out)
 
-    def clickImport():
+    def clickImport(self):
         """Click "Import from " + iPhoneName in Preview.
 
         Utilize isMultiplePhones().
         Intended to immediately follow openPreview().
         """
-        while previewClient.isMultiplePhones():
+        while self.isMultiplePhones():
             print("Multiple devices connected. Press return when only one "
                   "iPhone is connected.")
             applescript.tell.app("Terminal", "activate")
             input()
         applescript.tell.app(
             "System Events",
-            'click menu item 18 of menu 1 of menu bar item "File" '
-            'of menu bar 1 of process "Preview"')
+            'if exists menu bar 1 of process "Preview" then '
+            'click menu item 18 of menu 1 of menu bar item "File" of '
+            'menu bar 1 of process "Preview"')
 
-    def navImportWindow():
+    def navImportWindow(self):
         """Navigate Preview window labelled "Import from " + iPhone.
 
         Intended to immediately follow clickImport() and device unlock.
         Intended to immediately precede waitPhotoLoad().
         """
-        applescript.run("./scripts/navImportWindow.scpt")
+        r = applescript.run("./scripts/navImportWindow.scpt")
+        if r.out != "success":
+            raise AppleScriptError(r.out)
 
-    def fullDelay():
+    def fullDelay(self):
         """Delay functioning in an attempt to catch possible errors.
 
         Return True if one of the three cases below must be in effect:
@@ -61,12 +69,15 @@ class previewClient():
         (2) The device is not unlocked / is not recognized by Preview.
         (3) There are no images to import.
         """
-        if applescript.run("./scripts/fullDelay.scpt").out == "true":
+        r = applescript.run("./scripts/fullDelay.scpt")
+        if r.out == "true":
             return True
-        else:
+        elif r.out == "false":
             return False
+        else:
+            raise AppleScriptError(r.out)
 
-    def waitingOnPhotoLoad():
+    def waitingOnPhotoLoad(self):
         """Wait for photos for load if iPhone has just been connected.
 
         Prompt user if load taking a long time.
@@ -75,7 +86,7 @@ class previewClient():
         """
         userExit = False
         while True:
-            if previewClient.fullDelay() == False:
+            if self.fullDelay() == False:
                 break
             applescript.tell.app("Terminal", "activate")
             userWait = input(
@@ -97,7 +108,7 @@ class previewClient():
             applescript.tell.app("Preview", "quit")
         return userExit
 
-    def batchImport(batchNum, filePath):
+    def batchImport(self, batchNum, filePath):
         """Import photos in batches.
 
         Arguments:
@@ -112,7 +123,7 @@ class previewClient():
         else:
             raise AppleScriptError(r.out)
 
-    def importAll(filePath):
+    def importAll(self, filePath):
         """Import all photos.
 
         Arguments:
@@ -125,6 +136,20 @@ class previewClient():
             applescript.tell.app("Preview", "quit")
         else:
             raise AppleScriptError(r.out)
+
+    def cleanExitCheck(self):
+        """Check for windows which may prevent Preview from exiting"""
+
+        applescript.tell.app(
+            "System Events",
+            'if (exists sheet 1 of window 1 of process "Preview") or '
+            '(exists sheet 1 of sheet 1 of window 1 of process "Preview")'
+            ' then click button 1 of sheet 1 of window 1 of process "Preview"')
+        # Second one makes sure there aren't two in a row (time-lapse video)
+        applescript.tell.app(
+            "System Events",
+            'if exists sheet 1 of window 1 of process "Preview" then '
+            'click button 1 of sheet 1 of window 1 of process "Preview"')
 
 
 def checkFilePathRedundancy(userDir, homeDir):
@@ -246,15 +271,16 @@ def getFilePath():
             startsWithPeriod = True
         startsWithHomeRegex = "^" + homeDir
         if not re.search(startsWithHomeRegex, userDir):
-            # No need to check for redundancy if userDir starts with homeDir
+            # No need to check for redundancy if 
+            # userDir starts with homeDir
             userDir = checkFilePathRedundancy(userDir, homeDir)
         if re.search(":", userDir):  # path cannot contain ":"
             userDir = userDir.replace(":", " ")
             print("Without the colon (which is illegal), your file path is " +
                   userDir)
         if startsWithPeriod:
-            # "re.search" needed earlier to address more likely case that
-            # period is user error
+            # "re.search" needed earlier to address more likely case
+            # that period is user error
             print("Without the starting period (which is illegal), your file "
                   "path is " +
                   userDir)
@@ -331,20 +357,19 @@ def connectionCheck(serialNo):
     """
     while getSerialNo() == serialNo:
         time.sleep(.3)
-    print("\niPhone disconnected. This program will now exit")
-    pythonPID = ""
-    for p in psutil.process_iter(attrs=['name']):
-        if 'osascript' in p.info['name'] or 'Preview' in p.info['name']:
-            p.terminate()
-        elif 'Python' in p.info['name']:
-            pythonPID = p.pid
-    psutil.Process(pythonPID).terminate()
+    os.kill(os.getpid(), signal.SIGUSR1)
+
+
+def raiseDeviceErr(signal, frame):
+    """Handler for SIGUSR1 signal"""
+    raise DeviceConnectionError("\niPhone disconnected.")
 
 
 def transferPhotos():
     """Transfer photos from iDevice to Mac."""
     try:
         batchNum = -1
+        p = previewClient()
         print("Welcome to the Archiver")
         print("Press Ctrl+C to quit at any time")
         print("\033[1mTo ignore any parameters press return at the prompts "
@@ -360,31 +385,40 @@ def transferPhotos():
         print("\033[1mAvoid interacting with the computer other than Terminal "
               "while import is occurring.\nUI navigation can very easily fail "
               "if interrupted.\033[0m")
-        previewClient.openPreview()
+        p.openPreview()
         serialNo = serialNoCheck()
-        c = threading.Thread(
-            target=connectionCheck, args=(
-                serialNo,), daemon=True)
+        # Create custom signal to catch DeviceConnectionError
+        signal.signal(signal.SIGUSR1, raiseDeviceErr)
+        c = threading.Thread(target=connectionCheck,
+                             args=(serialNo,),
+                             daemon=True)
         c.start()
-        previewClient.clickImport()
+        p.clickImport()
         applescript.tell.app("Terminal", "activate")
         input("Press return when iPhone is unlocked")
         applescript.tell.app("Preview", "activate")
-        previewClient.navImportWindow()
-        if previewClient.waitingOnPhotoLoad() == False:
+        p.navImportWindow()
+        if p.waitingOnPhotoLoad() == False:
             if int(batchNum) > 0:
-                previewClient.batchImport(batchNum, filePath)
+                p.batchImport(batchNum, filePath)
             else:
-                previewClient.importAll(filePath)
+                p.importAll(filePath)
     except KeyboardInterrupt:
         print("\nUser exited.")
+        p.cleanExitCheck()
         applescript.tell.app("Preview", "quit")
-        sys.exit()
     except AppleScriptError as e:
         print(e)
         print("The program will exit now.")
+        p.cleanExitCheck()
         applescript.tell.app("Preview", "quit")
-        sys.exit()
+    except DeviceConnectionError as e:
+        print(e)
+        print("The program will exit now.")
+        p.cleanExitCheck()
+        applescript.tell.app("Preview", "quit")
     except Exception as e:
         print("Something went wrong in the photo transfer:")
         traceback.print_exc()
+        p.cleanExitCheck()
+        applescript.tell.app("Preview", "quit")
