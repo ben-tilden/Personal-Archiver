@@ -1,4 +1,4 @@
--- Navigates the window labelled "Import from " & iPhoneName.
+-- Navigates the window labelled "Import from " & deviceName.
 on navImportWindow()
 	tell application "System Events"
 		tell process "Preview"
@@ -7,7 +7,7 @@ on navImportWindow()
 				delay 0.2
 				set maxCounter to maxCounter + 1
 			end repeat
-			if exists sheet 1 of window 1 then -- sheet which requests iPhone unlock
+			if exists sheet 1 of window 1 then -- sheet which requests device unlock
 				click button 1 of sheet 1 of window 1
 			end if
 		end tell

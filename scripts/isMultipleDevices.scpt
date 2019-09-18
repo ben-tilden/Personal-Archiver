@@ -1,5 +1,5 @@
 -- Checks if there are multiple devices connected.
-on isMultiplePhones()
+on isMultipleDevices()
 	tell application "System Events"
 		tell process "Preview"
 			if menu item 2 of menu 1 of menu item 18 of menu 1 of menu bar item "File" of menu bar 1 exists then
@@ -9,13 +9,13 @@ on isMultiplePhones()
 			end if
 		end tell
 	end tell
-end isMultiplePhones
+end isMultipleDevices
 
 on main()
 	try
-		isMultiplePhones()
+		isMultipleDevices()
 	on error errStr number errNum
-		return "isMultiplePhones.scpt has encountered an error on import: " & errStr
+		return "isMultipleDevices.scpt has encountered an error on import: " & errStr
 	end try
 end main
 

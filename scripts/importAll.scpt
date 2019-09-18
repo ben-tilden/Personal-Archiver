@@ -29,7 +29,7 @@ on isVidOnly()
 	tell application "System Events"
 		tell process "Preview"
 			repeat with x from 1 to (count the rows of table 1 of scroll area 1 of group 1 of window 1)
-				if value of static text of UI element 3 of row x of table 1 of scroll area 1 of group 1 of window 1 does not contain "MOV" then
+				if (value of static text of UI element 3 of row x of table 1 of scroll area 1 of group 1 of window 1 does not contain "MOV") or (value of static text of UI element 3 of row x of table 1 of scroll area 1 of group 1 of window 1 does not contain "M4V") or (value of static text of UI element 3 of row x of table 1 of scroll area 1 of group 1 of window 1 does not contain "MP4") or (value of static text of UI element 3 of row x of table 1 of scroll area 1 of group 1 of window 1 does not contain "3G2") or (value of static text of UI element 3 of row x of table 1 of scroll area 1 of group 1 of window 1 does not contain "3GP") or (value of static text of UI element 3 of row x of table 1 of scroll area 1 of group 1 of window 1 does not contain "3GP2") or (value of static text of UI element 3 of row x of table 1 of scroll area 1 of group 1 of window 1 does not contain "3GPP") then
 					return false
 				end if
 			end repeat

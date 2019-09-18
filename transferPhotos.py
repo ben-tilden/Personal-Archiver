@@ -20,13 +20,14 @@ class previewClient():
 
     def openPreview(self):
         """Open Preview."""
+        self.cleanExit()
         r = applescript.run("./scripts/openPreview.scpt")
         if r.out != "success":
             raise AppleScriptError(r.out)
 
-    def isMultiplePhones(self):
+    def isMultipleDevices(self):
         """Return true if multiple devices are connected."""
-        r = applescript.run("./scripts/isMultiplePhones.scpt")
+        r = applescript.run("./scripts/isMultipleDevices.scpt")
         if r.out == "true":
             return True
         elif r.out == "false":
@@ -35,14 +36,14 @@ class previewClient():
             raise AppleScriptError(r.out)
 
     def clickImport(self):
-        """Click "Import from " + iPhoneName in Preview.
+        """Click "Import from " + deviceName in Preview.
 
-        Utilize isMultiplePhones().
+        Utilize isMultipleDevices().
         Intended to immediately follow openPreview().
         """
-        while self.isMultiplePhones():
+        while self.isMultipleDevices():
             print("Multiple devices connected. Press return when only one "
-                  "iPhone is connected.")
+                  "device is connected.")
             applescript.tell.app("Terminal", "activate")
             input()
         applescript.tell.app(
@@ -52,7 +53,7 @@ class previewClient():
             'menu bar 1 of process "Preview"')
 
     def navImportWindow(self):
-        """Navigate Preview window labelled "Import from " + iPhone.
+        """Navigate Preview window labelled "Import from " + deviceName.
 
         Intended to immediately follow clickImport() and device unlock.
         Intended to immediately precede waitPhotoLoad().
@@ -78,7 +79,7 @@ class previewClient():
             raise AppleScriptError(r.out)
 
     def waitingOnPhotoLoad(self):
-        """Wait for photos for load if iPhone has just been connected.
+        """Wait for photos for load if device has just been connected.
 
         Prompt user if load taking a long time.
         Exit if user is unwilling to wait or notices something wrong.
@@ -93,7 +94,7 @@ class previewClient():
                 "Keep waiting? (y/n)\n"
                 "This message occurs if\n"
                 "(1) The images are taking a long time to load\n"
-                "(2) The iPhone is not unlocked\n"
+                "(2) The device is not unlocked\n"
                 "(3) There are no images to import\n")
             if userWait.lower() == "n" or userWait.lower() == "no":
                 userExit = True
@@ -137,19 +138,12 @@ class previewClient():
         else:
             raise AppleScriptError(r.out)
 
-    def cleanExitCheck(self):
+    def cleanExit(self):
         """Check for windows which may prevent Preview from exiting"""
 
-        applescript.tell.app(
-            "System Events",
-            'if (exists sheet 1 of window 1 of process "Preview") or '
-            '(exists sheet 1 of sheet 1 of window 1 of process "Preview")'
-            ' then click button 1 of sheet 1 of window 1 of process "Preview"')
-        # Second one makes sure there aren't two in a row (time-lapse video)
-        applescript.tell.app(
-            "System Events",
-            'if exists sheet 1 of window 1 of process "Preview" then '
-            'click button 1 of sheet 1 of window 1 of process "Preview"')
+        r = applescript.run("./scripts/cleanExit.scpt")
+        if r.out != "success":
+            raise AppleScriptError(r.out)
 
 
 def checkFilePathRedundancy(userDir, homeDir):
@@ -342,7 +336,7 @@ def serialNoCheck():
     """Return serial number of connected device."""
     serialNo = getSerialNo()
     while serialNo is None:
-        input("Press return when iPhone is connected.")
+        input("Press return when device is connected.")
         serialNo = getSerialNo()
     return serialNo
 
@@ -362,11 +356,11 @@ def connectionCheck(serialNo):
 
 def raiseDeviceErr(signal, frame):
     """Handler for SIGUSR1 signal"""
-    raise DeviceConnectionError("\niPhone disconnected.")
+    raise DeviceConnectionError("\nDevice disconnected.")
 
 
 def transferPhotos():
-    """Transfer photos from iDevice to Mac."""
+    """Transfer photos from device to Mac."""
     try:
         batchNum = -1
         p = previewClient()
@@ -395,7 +389,7 @@ def transferPhotos():
         c.start()
         p.clickImport()
         applescript.tell.app("Terminal", "activate")
-        input("Press return when iPhone is unlocked")
+        input("Press return when device is unlocked")
         applescript.tell.app("Preview", "activate")
         p.navImportWindow()
         if p.waitingOnPhotoLoad() == False:
@@ -405,20 +399,44 @@ def transferPhotos():
                 p.importAll(filePath)
     except KeyboardInterrupt:
         print("\nUser exited.")
-        p.cleanExitCheck()
-        applescript.tell.app("Preview", "quit")
+        print("Cleaning up...")
+        try:
+            p.cleanExit()
+            print("Finished.")
+        except:
+            e = "\nError: {}".format(sys.exc_info()[0])
+            print(e)
+            print("End.")
     except AppleScriptError as e:
         print(e)
         print("The program will exit now.")
-        p.cleanExitCheck()
-        applescript.tell.app("Preview", "quit")
+        print("Cleaning up...")
+        try:
+            p.cleanExit()
+            print("Finished.")
+        except:
+            e = "\nError: {}".format(sys.exc_info()[0])
+            print(e)
+            print("End.")
     except DeviceConnectionError as e:
         print(e)
         print("The program will exit now.")
-        p.cleanExitCheck()
-        applescript.tell.app("Preview", "quit")
+        print("Cleaning up...")
+        try:
+            p.cleanExit()
+            print("Finished.")
+        except:
+            e = "\nError: {}".format(sys.exc_info()[0])
+            print(e)
+            print("End.")
     except Exception as e:
         print("Something went wrong in the photo transfer:")
         traceback.print_exc()
-        p.cleanExitCheck()
-        applescript.tell.app("Preview", "quit")
+        print("Cleaning up...")
+        try:
+            p.cleanExit()
+            print("Finished.")
+        except:
+            e = "\nError: {}".format(sys.exc_info()[0])
+            print(e)
+            print("End.")

@@ -50,7 +50,8 @@ on highlightSelection(selectionNum, rowNum)
 					key code 125 using shift down
 					set rowNum to rowNum + 1
 				end if
-				if value of static text of UI element 3 of row rowNum of table 1 of scroll area 1 of group 1 of window 1 contains "MOV" then -- or
+				log (rowNum)
+				if (value of static text of UI element 3 of row rowNum of table 1 of scroll area 1 of group 1 of window 1 contains "MOV") or (value of static text of UI element 3 of row rowNum of table 1 of scroll area 1 of group 1 of window 1 contains "M4V") or (value of static text of UI element 3 of row rowNum of table 1 of scroll area 1 of group 1 of window 1 contains "MP4") or (value of static text of UI element 3 of row rowNum of table 1 of scroll area 1 of group 1 of window 1 contains "3G2") or (value of static text of UI element 3 of row rowNum of table 1 of scroll area 1 of group 1 of window 1 contains "3GP") or (value of static text of UI element 3 of row rowNum of table 1 of scroll area 1 of group 1 of window 1 contains "3GP2") or (value of static text of UI element 3 of row rowNum of table 1 of scroll area 1 of group 1 of window 1 contains "3GPP") then
 					set vidNum to vidNum + 1
 				end if
 			end repeat
@@ -142,5 +143,5 @@ on main(batchNum, filePath)
 end main
 
 on run (argv)
-	main(item 1 of argv, item 2 of argv) --batchNum, filePath
+	main(item 1 of argv as number, item 2 of argv) --batchNum, filePath
 end run
