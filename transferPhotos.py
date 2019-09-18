@@ -20,7 +20,6 @@ class previewClient():
 
     def openPreview(self):
         """Open Preview."""
-        self.cleanExit()
         r = applescript.run("./scripts/openPreview.scpt")
         if r.out != "success":
             raise AppleScriptError(r.out)
@@ -46,6 +45,8 @@ class previewClient():
                   "device is connected.")
             applescript.tell.app("Terminal", "activate")
             input()
+            self.cleanExit()
+            self.openPreview()
         applescript.tell.app(
             "System Events",
             'if exists menu bar 1 of process "Preview" then '
@@ -364,6 +365,7 @@ def transferPhotos():
     try:
         batchNum = -1
         p = previewClient()
+        p.cleanExit()
         print("Welcome to the Archiver")
         print("Press Ctrl+C to quit at any time")
         print("\033[1mTo ignore any parameters press return at the prompts "
@@ -380,6 +382,7 @@ def transferPhotos():
               "while import is occurring.\nUI navigation can very easily fail "
               "if interrupted.\033[0m")
         p.openPreview()
+        p.clickImport()
         serialNo = serialNoCheck()
         # Create custom signal to catch DeviceConnectionError
         signal.signal(signal.SIGUSR1, raiseDeviceErr)
@@ -387,7 +390,6 @@ def transferPhotos():
                              args=(serialNo,),
                              daemon=True)
         c.start()
-        p.clickImport()
         applescript.tell.app("Terminal", "activate")
         input("Press return when device is unlocked")
         applescript.tell.app("Preview", "activate")
