@@ -3,11 +3,15 @@
 # Author: Ben Tilden
 
 from transferPhotos import transferPhotos
+from sortPhotos import sortPhotos
 
 
 def main():
     """Transfer photos from iDevice to Mac"""
-    transferPhotos()
+    filePath = transferPhotos()
+    if filePath != None:
+    	sortPhotos(filePath)
+
 
 
 # run

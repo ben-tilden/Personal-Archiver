@@ -52,7 +52,7 @@ on waitForImport(vidOnly)
 					delay 1
 					my timeLapseCheck()
 				end repeat
-				repeat until not (button "Cancel" of group 1 of window 1 exists)
+				repeat until not (button "Cancel" of group 1 of window 2 exists)
 					delay 3
 					my timeLapseCheck()
 				end repeat

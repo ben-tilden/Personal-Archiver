@@ -400,6 +400,7 @@ def transferPhotos():
                 p.batchImport(batchNum, filePath)
             else:
                 p.importAll(filePath)
+        return filePath
     except KeyboardInterrupt:
         print("\nUser exited.")
         print("Cleaning up...")
