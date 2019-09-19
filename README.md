@@ -23,6 +23,7 @@ Quick Notes on transferPhotos():
 
 Quick Notes on sortPhotos():
 * See PHOTO_EXTENSION_LIST, VIDEO_EXTENSION_LIST, and RAW_EXTENSION_LIST for photos that can be imported via Preview (and thus transferPhotos)
+* "Pictures" are distinguished from "Screenshots" by having .JPG as their file extension. This may be refined in future updates.
 
 ## Requirements
 
