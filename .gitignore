@@ -125,4 +125,5 @@ dmypy.json
 
 # Added by Ben
 .DS_Store
-zipPrivate.py
+extensions/*
+archiver.sh
