@@ -126,4 +126,4 @@ dmypy.json
 # Added by Ben
 .DS_Store
 extensions/*
-archiver.sh
+deprecated/*

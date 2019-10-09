@@ -1,5 +1,5 @@
-# Program: Personal Archiver
-# Objective: Archive photos, lists, etc. in order to keep mac organized
+# Program: archivePhotos
+# Objective: Import photos from iDevice and organize them
 # Author: Ben Tilden
 
 from transferPhotos import transferPhotos
@@ -7,11 +7,10 @@ from sortPhotos import sortPhotos
 
 
 def main():
-    """Transfer photos from iDevice to Mac"""
+    """Transfer and organize photos from iDevice"""
     filePath = transferPhotos()
     if filePath != None:
     	sortPhotos(filePath)
-
 
 
 # run
