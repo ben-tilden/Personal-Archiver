@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 # Program: sortPhotos
 # Objective: Sort photos in a given directory
 # Author: Ben Tilden
@@ -167,6 +169,6 @@ def sortPhotos(filePath):
     """Sort photos in a given directory."""
     try:
         iterateDict(createDict(filePath), filePath)
-    except Exception as e:
+    except Exception:
         print("Something went wrong in the photo sort:")
         traceback.print_exc()

@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 # Program: archivePhotos
 # Objective: Import photos from iDevice and organize them
 # Author: Ben Tilden

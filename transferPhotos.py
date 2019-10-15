@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 # Program: transferPhotos
 # Objective: Transfer photos from iDevice to Mac
 # Author: Ben Tilden
